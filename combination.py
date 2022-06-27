@@ -19,19 +19,19 @@ def remove_items_from_list(keypoints, Templiste):
 
 templates = []
 templ_shapes = []
-templ_name=["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"] 
+templ_name=["A","a","B","b","C","c","D","d","E","e","F","f","G","g","H","h","I","i","J","j","K","k","L","l","M","m","N","n","o","P","p","Q","q","R","r","S","s","T","t","U","u","V","v","W","w","X","x","Y","y","z"]
 similarity=[]
 keypoints=[]
 Templiste=[]
 sorted=[]
 faktor=10
 
-for i in range(26):
-    templates.append(cv2.imread('C:/Users/trpun/Desktop/OCR/Templates/New folder2/template{}.png'.format(i),0)) 
+for i in range(49):
+    templates.append(cv2.imread('C:/Users/trpun/Desktop/OCR/Templates/New folder/template{}.png'.format(i),0)) 
     templ_shapes.append(templates[i].shape[:: -1])
 
 
-original = cv2.imread('C:/Users/trpun/Desktop/OCR/Photos/Untitled7.png')
+original = cv2.imread('C:/Users/trpun/Desktop/OCR/Photos/Untitled14.png')
 
 ho,wo, _ = original.shape #h ,w
 ho2=faktor*ho
@@ -58,7 +58,7 @@ for c in cnts:
     x,y,w,h = cv2.boundingRect(c)
     keypoints.append( (x,y,w,h) )
 while b < len(keypoints):             
-    keypoints.sort(key=lambda x: x[0]+x[1])
+    keypoints.sort(key=lambda x: x[0]+x[1])#x+y
     z=takeSecond(keypoints[0])+takeForth(keypoints[0])/2
     index=0
     while index < len(keypoints): 
@@ -77,9 +77,20 @@ while b < len(keypoints):
     Templiste.clear()
 n=0
 
-hey=[]
-
-                   
+temp=[]
+ 
+# Function to convert  
+def listToString(s): 
+    
+    # initialize an empty string
+    str1 = "" 
+    
+    # return string  
+    return (str1.join(s))
+        
+        
+  
+                  
 def matching(cropped_image,x,y):#x , y are starting coordinates of cropped photo in original photo
          threshold = 1
          limit=0.1
@@ -90,7 +101,7 @@ def matching(cropped_image,x,y):#x , y are starting coordinates of cropped photo
 
                index=0
                #print("threshold")
-               for template,templ_shape in zip(templates,templ_shapes):
+               for template in templates:
            
                    
                    
@@ -105,12 +116,12 @@ def matching(cropped_image,x,y):#x , y are starting coordinates of cropped photo
                    loc = np.where( res >= threshold)
                    #print (loc) 
                    for pt in zip(*loc[::-1]):
-                        hey.append((pt[0],pt[1]))
+                        temp.append((pt[0],pt[1]))
                    
-                   if len(hey)>0:
+                   if len(temp)>0:
                       last=threshold-0.1
-                      #print(hey)
-                      similarity.append((index,threshold,hey[0],(wc2,hc2)))
+                      #print(temp)
+                      similarity.append((index,threshold,temp[0],(wc2,hc2)))
 
                       if last<=limit and len(templates)==index+1 :
                          similarity.sort(key=lambda x: x[1],reverse=True)
@@ -120,7 +131,7 @@ def matching(cropped_image,x,y):#x , y are starting coordinates of cropped photo
 
                          
                              
-                   hey.clear()    
+                   temp.clear()    
 
                    index=index+1
         
@@ -130,27 +141,53 @@ def matching(cropped_image,x,y):#x , y are starting coordinates of cropped photo
                threshold=threshold-0.1 
          if len(similarity)>0:      
             return templ_name[takeFirst(similarity[j])] 
+newlist=[]
+newlist = sorted.copy()
+newlist.sort(key=lambda x: x[3],reverse=True)
+#print(newlist)
+max_h=takeForth(newlist[0]) 
+
+
+words=[]
+words_temp=[]
+
+
+average_dist=int(max_h/4) 
+print(average_dist)
+        
 
 while n<len(sorted):
+
      x,y,w,h = sorted[n] 
+     if n+1<len(sorted):
+        x2,y2,w2,h2 = sorted[n+1]
+
      cropped_imagee = image[y:y+h, x:x+w] #crop_img = img[y:y+h, x:x+w]
-
-     #cv2.imwrite('C:/Users/trpun/Desktop/OCR/Templates/New folder2/template{}.png'.format(n), cropped_imagee)
-
-
 
      gray2 = cv2.cvtColor(cropped_imagee, cv2.COLOR_BGR2GRAY)
      (thresh, im_bw2) = cv2.threshold(gray2, 128, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-     
-     	
-     
-    
+
      
      text=matching(im_bw2,x,y)# always inside gray
-     #print(similarity)
-     
-     #print (text)
-     #print("---------------")
+
+     rect_dist=x2-x-w
+
+    
+     if rect_dist<average_dist:
+        words_temp.append(text)
+     else:
+         if len(words_temp)>0:
+             words_temp.append(text)
+             word=listToString(words_temp)
+
+             words.append(word)
+             #print("words temp is   ",words_temp)
+             #print("---------------") 
+             #print("words is   ",words)
+             #print("---------------")  
+          
+             words_temp.clear()
+
      similarity.clear()
     
      relatvie_x=int(x/faktor)
@@ -159,11 +196,11 @@ while n<len(sorted):
      relatvie_h=int(h/faktor)
      original = cv2.rectangle(original, (relatvie_x, relative_y), (relatvie_x+ relatvie_w, relative_y + relatvie_h), (36,255,12), 1)
 
-     cv2.putText(original, text, (relatvie_x, relative_y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36,255,12), 2)
-     n=n+1  
+     cv2.putText(original, text, (relatvie_x, relative_y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (36,255,12), 2)
+     n=n+1
+      
+   
      
-
-cv2.imshow('cropped_imagzzzzee',original)
-#cv2.imshow('out',out) 
-#cv2.imshow('im_gray',gray) 
+print(words)
+#cv2.imshow('cropped_imagzzzzee',original)
 cv2.waitKey(0)
